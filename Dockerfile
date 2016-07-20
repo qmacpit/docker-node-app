@@ -12,17 +12,19 @@ RUN wget --no-check-certificate "https://nodejs.org/download/release/v$NODE_VERS
   && sha256sum "node-v$NODE_VERSION-linux-x64.tar.xz" > SHASUMS256.txt \
   && cat SHASUMS256.txt | grep "$SHASUMS256  node-v$NODE_VERSION-linux-x64.tar.xz" \
   && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-  && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
+  && rm "node-v$NODE_VERSION-linux-x64.tar.xz" SHASUMS256.txt
 
 CMD [ "node" ]
 
 # Create app directory
 RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package.json /usr/src/app/
-RUN npm install
+ADD package.json /tmp/package.json
+RUN cd /tmp && npm install
+RUN cp -a /tmp/node_modules /usr/src/app/
+
+WORKDIR /usr/src/app
 
 # Bundle app source
 COPY src /usr/src/app
